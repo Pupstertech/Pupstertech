@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_cc_external_app_tree" model="ir.ui.view">
+        <field name="name">cc.external.app.tree</field>
+        <field name="model">cc.external.app</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="url"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_cc_external_app_form" model="ir.ui.view">
+        <field name="name">cc.external.app.form</field>
+        <field name="model">cc.external.app</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="category"/>
+                        <field name="url"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cc_external_apps" model="ir.actions.act_window">
+        <field name="name">External Apps</field>
+        <field name="res_model">cc.external.app</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_cc_root" name="Command Center" sequence="10"/>
+    <menuitem id="menu_cc_external_apps" name="External Apps" parent="menu_cc_root" action="action_cc_external_apps"/>
+</odoo>
