@@ -1,0 +1,88 @@
+version: "3.9"
+
+services:
+  postgres_odoo:
+    image: postgres:16
+    container_name: postgres_odoo
+    environment:
+      POSTGRES_DB: ${ODOO_DB_NAME:-odoo}
+      POSTGRES_USER: ${ODOO_DB_USER:-odoo}
+      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+    volumes:
+      - postgres_odoo_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  odoo:
+    image: odoo:19.0
+    container_name: odoo
+    depends_on:
+      - postgres_odoo
+    environment:
+      HOST: postgres_odoo
+      USER: ${ODOO_DB_USER:-odoo}
+      PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+    ports:
+      - "8069:8069"
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - ./odoo_addons:/mnt/extra-addons
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  assistant_api:
+    build:
+      context: ./services/assistant_api
+    container_name: assistant_api
+    depends_on:
+      - ollama
+      - qdrant
+      - postgres_odoo
+    environment:
+      ASSISTANT_DB_DSN: ${ASSISTANT_DB_DSN:-postgresql://odoo:odoo@postgres_odoo:5432/odoo}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b-instruct}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      REMINDER_TIMEZONE: ${REMINDER_TIMEZONE:-UTC}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ./services/assistant_api
+    container_name: scheduler
+    command: ["python", "-m", "app.scheduler"]
+    depends_on:
+      - assistant_api
+    environment:
+      ASSISTANT_DB_DSN: ${ASSISTANT_DB_DSN:-postgresql://odoo:odoo@postgres_odoo:5432/odoo}
+      REMINDER_TIMEZONE: ${REMINDER_TIMEZONE:-UTC}
+    restart: unless-stopped
+
+volumes:
+  postgres_odoo_data:
+  odoo_data:
+  qdrant_data:
+  ollama_data:

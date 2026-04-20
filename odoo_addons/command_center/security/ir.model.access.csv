@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cc_external_app_user,cc.external.app user,model_cc_external_app,base.group_user,1,1,1,1
+access_cc_plan_note_user,cc.plan.note user,model_cc_plan_note,base.group_user,1,1,1,1
+access_cc_reminder_user,cc.reminder user,model_cc_reminder,base.group_user,1,1,1,1
